@@ -1,11 +1,12 @@
-const User = require( '../models/user.js' );
+const User = require( '../models/user' );
+const Error = require( '../utils/errors' );
 
 const getUsers = ( req, res ) => {
 	User.find({})
 		.then( ( users ) => res.send( users ) )
 		.catch( ( err ) => {
 			console.error( err );
-			return res.status( 500 ).send({ message: 'default error. Accompanied by the message: "An error has occurred on the server.' });
+			return res.status( 500 ).send( Error.ERR_500_INTERNAL );
 		});
 };
 
@@ -17,9 +18,9 @@ const createUser = ( req, res ) => {
 		.catch(( err ) => {
 			console.error( err );
 			if ( err.name === "ValidationError" ) {
-				return res.status( 400 ).send({ message: 'invalid data passed to the methods for creating an item/user or updating an item, or invalid ID passed to the params.' })
+				return res.status( 400 ).send( Error.ERR_400_BADPARAMS );
 			} else {
-				return res.status( 500 ).send({ message: 'default error. Accompanied by the message: "An error has occurred on the server.' });
+				return res.status( 500 ).send( Error.ERR_500_INTERNAL );
 			}
 		});
 };
@@ -33,11 +34,11 @@ const getUserById = ( req, res ) => {
 		.catch(( err ) => {
 			console.error( err );
 			if ( err.name === "CastError" ) {
-				return res.status( 400 ).send({ message: 'invalid data passed to the methods for creating an item/user or updating an item, or invalid ID passed to the params.' });
+				return res.status( 400 ).send( Error.ERR_400_BADPARAMS );
 			} else if ( err.name === "DocumentNotFoundError" ) {
-				return res.status( 404 ).send({ message: 'there is no user or clothing item with the requested id, or the request was sent to a non-existent address.' });
+				return res.status( 404 ).send( Error.ERR_404_NOTFOUND );
 			} else {
-				return res.status( 500 ).send({ message: 'default error. Accompanied by the message: "An error has occurred on the server.' });
+				return res.status( 500 ).send( Error.ERR_500_INTERNAL );
 			}
 		});
 };
