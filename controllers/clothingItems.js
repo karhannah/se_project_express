@@ -1,12 +1,10 @@
-const Item = require( '../models/clothingItem.js' );
+const Item = require( '../models/clothingItem' );
+const Error = require( '../utils/errors' );
 
 const createItem = ( req, res ) => {
-	console.log( req );
-	console.log( req.body );
-
 	const { name, weather, imageUrl } = req.body;
 
-	Item.create({ name, weather, imageUrl })
+	Item.create({ name, weather, imageUrl, owner: req.user._id })
 		.then(( item ) => {
 			console.log( item );
 			res.send({ data: item });
@@ -14,9 +12,9 @@ const createItem = ( req, res ) => {
 		.catch(( err ) => {
 			console.error( err );
 			if ( err.name === "ValidationError" ) {
-				return res.status( 400 ).send({ message: 'invalid data passed to the methods for creating an item/user or updating an item, or invalid ID passed to the params.' });
+				return res.status( 400 ).send( Error.ERR_400_BADPARAMS );
 			} else {
-				return res.status( 500 ).send({ message: 'An error has occurred on the server.' });
+				return res.status( 500 ).send( Error.ERR_500_INTERNAL );
 			}
 		});
 };
@@ -26,38 +24,62 @@ const getItems = ( req, res ) => {
 		.then(( items ) => res.status( 200 ).send({ items }))
 		.catch(( err ) => {
 			console.error( err );
-			return res.status( 500 ).send({ message: 'An error has occurred on the server.' });
+			return res.status( 500 ).send( Error.ERR_500_INTERNAL );
 		});
 };
 
 const deleteItem = ( req, res ) => {
-	const { itemId } = req.param;
+	const { itemId } = req.params;
 
 	Item.findByIdAndDelete( itemId )
 		.orFail()
-		.then(( item ) => res.status( 200 ).send({  }))
+		.then(( item ) => res.status( 200 ).send({ message: 'Item successfully deleted' }))
 		.catch(( err ) => {
 			console.error( err );
 			if ( err.name === "CastError" || err.name === "ValidateError" ) {
-				return res.status( 400 ).send({ message: 'invalid data passed to the methods for creating an item/user or updating an item, or invalid ID passed to the params.' });
+				return res.status( 400 ).send( Error.ERR_400_BADPARAMS );
 			} else if ( err.name === "DocumentNotFoundError" ) {
-				return res.status( 404 ).send({ message: 'there is no user or clothing item with the requested id, or the request was sent to a non-existent address.' });
+				return res.status( 404 ).send( Error.ERR_404_NOTFOUND );
 			} else {
-				return res.status( 500 ).send({ message: 'An error has occurred on the server.' });
+				return res.status( 500 ).send( Error.ERR_500_INTERNAL );
 			}
 		});
 };
 
-const likeItem = ( req, res ) => Item.findByIdAndUpdate(
-	req.params.itemId,
-	{ $addToSet: { likes: req.user._id } },
-	{ new: true }
-);
+const likeItem = ( req, res ) => {
+	const { itemId } = req.params;
 
-const dislikeItem = ( req, res ) => Item.findByIdAndUpdate(
-	req.params.itemId,
-	{ $pull: { likes: req.user._id } },
-	{ new: true }
-);
+	Item.findByIdAndUpdate( itemId, { $addToSet: { likes: req.user._id } }, { new: true } )
+		.orFail()
+		.then(( item ) => res.status( 200 ).send({ message: 'Item liked successfully' }))
+		.catch(( err ) => {
+			console.error( err );
+			if ( err.name === "CastError" || err.name === "ValidateError" ) {
+				return res.status( 400 ).send( Error.ERR_400_BADPARAMS );
+			} else if ( err.name === "DocumentNotFoundError" ) {
+				return res.status( 404 ).send( Error.ERR_404_NOTFOUND );
+			} else {
+				return res.status( 500 ).send( Error.ERR_500_INTERNAL );
+			}
+		});
+};
+
+const dislikeItem = ( req, res ) => {
+	const { itemId } = req.params;
+
+	Item.findByIdAndUpdate( itemId, { $pull: { likes: req.user._id } }, { new: true })
+		.orFail()
+		.then(( item ) => res.status( 200 ).send({ message: 'Item disliked successfully' }))
+		.catch(( err ) => {
+			console.error( err );
+			if ( err.name === "CastError" || err.name === "ValidateError" ) {
+				return res.status( 400 ).send( Error.ERR_400_BADPARAMS );
+			} else if ( err.name === "DocumentNotFoundError" ) {
+				return res.status( 404 ).send( Error.ERR_404_NOTFOUND );
+			} else {
+				return res.status( 500 ).send( Error.ERR_500_INTERNAL );
+			}
+		});
+};
 
 module.exports = { createItem, getItems, deleteItem, likeItem, dislikeItem };
