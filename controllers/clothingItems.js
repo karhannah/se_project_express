@@ -1,5 +1,6 @@
 const Item = require( '../models/clothingItem' );
-const Error = require( '../utils/errors' );
+
+const { BAD_REQUEST, NOT_FOUND, DEFAULT } = require( '../utils/errors' );
 
 const createItem = ( req, res ) => {
 	const { name, weather, imageUrl } = req.body;
@@ -12,19 +13,19 @@ const createItem = ( req, res ) => {
 		.catch(( err ) => {
 			console.error( err );
 			if ( err.name === "ValidationError" ) {
-				return res.status( 400 ).send( Error.ERR_400_BADPARAMS );
-			} else {
-				return res.status( 500 ).send( Error.ERR_500_INTERNAL );
+				return res.status( BAD_REQUEST.code ).send( BAD_REQUEST.message );
 			}
+			
+			return res.status( DEFAULT.code ).send( DEFAULT.message );
 		});
 };
 
 const getItems = ( req, res ) => {
 	Item.find({})
-		.then(( items ) => res.status( 200 ).send({ items }))
+		.then(( items ) => res.send({ items }))
 		.catch(( err ) => {
 			console.error( err );
-			return res.status( 500 ).send( Error.ERR_500_INTERNAL );
+			return res.status( DEFAULT.code ).send( DEFAULT.message );
 		});
 };
 
@@ -33,16 +34,18 @@ const deleteItem = ( req, res ) => {
 
 	Item.findByIdAndDelete( itemId )
 		.orFail()
-		.then(( item ) => res.status( 200 ).send({ message: 'Item successfully deleted' }))
+		.then(() => res.status( 200 ).send({ message: 'Item successfully deleted' }))
 		.catch(( err ) => {
 			console.error( err );
 			if ( err.name === "CastError" || err.name === "ValidateError" ) {
-				return res.status( 400 ).send( Error.ERR_400_BADPARAMS );
-			} else if ( err.name === "DocumentNotFoundError" ) {
-				return res.status( 404 ).send( Error.ERR_404_NOTFOUND );
-			} else {
-				return res.status( 500 ).send( Error.ERR_500_INTERNAL );
+				return res.status( BAD_REQUEST.code ).send( BAD_REQUEST.message );
 			}
+			
+			if ( err.name === "DocumentNotFoundError" ) {
+				return res.status( NOT_FOUND.code ).send( NOT_FOUND.message );
+			}
+			
+			return res.status( DEFAULT.code ).send( DEFAULT.message );
 		});
 };
 
@@ -51,16 +54,18 @@ const likeItem = ( req, res ) => {
 
 	Item.findByIdAndUpdate( itemId, { $addToSet: { likes: req.user._id } }, { new: true } )
 		.orFail()
-		.then(( item ) => res.status( 200 ).send({ message: 'Item liked successfully' }))
+		.then(() => res.send({ message: 'Item liked successfully' }))
 		.catch(( err ) => {
 			console.error( err );
 			if ( err.name === "CastError" || err.name === "ValidateError" ) {
-				return res.status( 400 ).send( Error.ERR_400_BADPARAMS );
-			} else if ( err.name === "DocumentNotFoundError" ) {
-				return res.status( 404 ).send( Error.ERR_404_NOTFOUND );
-			} else {
-				return res.status( 500 ).send( Error.ERR_500_INTERNAL );
+				return res.status( BAD_REQUEST.code ).send( BAD_REQUEST.message );
 			}
+
+			if ( err.name === "DocumentNotFoundError" ) {
+				return res.status( NOT_FOUND.code ).send( NOT_FOUND.message );
+			}
+			
+			return res.status( DEFAULT.code ).send( DEFAULT.message );
 		});
 };
 
@@ -69,16 +74,18 @@ const dislikeItem = ( req, res ) => {
 
 	Item.findByIdAndUpdate( itemId, { $pull: { likes: req.user._id } }, { new: true })
 		.orFail()
-		.then(( item ) => res.status( 200 ).send({ message: 'Item disliked successfully' }))
+		.then(() => res.send({ message: 'Item disliked successfully' }))
 		.catch(( err ) => {
 			console.error( err );
 			if ( err.name === "CastError" || err.name === "ValidateError" ) {
-				return res.status( 400 ).send( Error.ERR_400_BADPARAMS );
-			} else if ( err.name === "DocumentNotFoundError" ) {
-				return res.status( 404 ).send( Error.ERR_404_NOTFOUND );
-			} else {
-				return res.status( 500 ).send( Error.ERR_500_INTERNAL );
+				return res.status( BAD_REQUEST.code ).send( BAD_REQUEST.message );
 			}
+
+			if ( err.name === "DocumentNotFoundError" ) {
+				return res.status( NOT_FOUND.code ).send( NOT_FOUND.message );
+			}
+			
+			return res.status( DEFAULT.code ).send( DEFAULT.message );
 		});
 };
 
