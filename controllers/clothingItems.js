@@ -1,6 +1,6 @@
 const Item = require( '../models/clothingItem' );
 
-const { BAD_REQUEST, NOT_FOUND, DEFAULT } = require( '../utils/errors' );
+const { BAD_REQUEST, UNAUTHORIZED, NOT_FOUND, CONFLICT, DEFAULT } = require( '../utils/errors' );
 
 const createItem = ( req, res ) => {
 	const { name, weather, imageUrl } = req.body;
@@ -34,7 +34,13 @@ const deleteItem = ( req, res ) => {
 
 	Item.findByIdAndDelete( itemId )
 		.orFail()
-		.then(() => res.status( 200 ).send({ message: 'Item successfully deleted' }))
+		.then(( item ) => {
+			if ( item.owner === req.user._id ) {
+				res.status( 200 ).send({ message: 'Item successfully deleted' });
+			} else {
+				res.status( UNAUTHORIZED.code ).send({ message: UNAUTHORIZED.message });
+			}
+		})
 		.catch(( err ) => {
 			console.error( err );
 			if ( err.name === "CastError" || err.name === "ValidateError" ) {
