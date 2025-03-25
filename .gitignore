@@ -19,3 +19,4 @@ node_modules
 # config file with private RSA
 
 utils/config.js
+*.pem
