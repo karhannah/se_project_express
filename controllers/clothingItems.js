@@ -1,6 +1,6 @@
 const Item = require( '../models/clothingItem' );
 
-const { BAD_REQUEST, UNAUTHORIZED, NOT_FOUND, CONFLICT, DEFAULT } = require( '../utils/errors' );
+const { BAD_REQUEST, FORBIDDEN, NOT_FOUND, DEFAULT } = require( '../utils/errors' );
 
 const createItem = ( req, res ) => {
 	const { name, weather, imageUrl } = req.body;
@@ -32,13 +32,18 @@ const getItems = ( req, res ) => {
 const deleteItem = ( req, res ) => {
 	const { itemId } = req.params;
 
-	Item.findByIdAndDelete( itemId )
+	Item.findOne( itemId )
 		.orFail()
 		.then(( item ) => {
-			if ( item.owner === req.user._id ) {
-				res.status( 200 ).send({ message: 'Item successfully deleted' });
+			if ( String( item.owner ) === req.user._id ) {
+				Item.deleteOne( itemId )
+					.then(() => res.status( 200 ).send({ message: 'Item successfully deleted' }) )
+				    .catch(( err ) => {
+						console.error( err );
+						return res.status( DEFAULT.code ).send({ message: DEFAULT.message });
+					});
 			} else {
-				res.status( UNAUTHORIZED.code ).send({ message: UNAUTHORIZED.message });
+				res.status( FORBIDDEN.code ).send({ message: FORBIDDEN.message });
 			}
 		})
 		.catch(( err ) => {
