@@ -1,5 +1,5 @@
-const fs = require( 'fs' );
+const { JWT_SECRET = "dev-key" } = process.env;
 
 module.exports = {
-	JWT_SECRET: fs.readFileSync('private.pem'),
-}
+	JWT_SECRET
+};

@@ -28,7 +28,7 @@ const createUser = ( req, res ) => {
 					return res.status( BAD_REQUEST.code ).send({ message: BAD_REQUEST.message });
 				}
 				if ( err.code === 11000 ) {
-					return res.status( CONFLICT.code ).send({ message: CONFLICT.code });
+					return res.status( CONFLICT.code ).send({ message: CONFLICT.message });
 				}
 			
 			return res.status( DEFAULT.code ).send({ message: DEFAULT.message }); 
@@ -64,7 +64,7 @@ const login = ( req, res ) => {
 				expiresIn: '7d'
 			});
 
-			return res.send( token );
+			return res.send({ token });
 		})
 		.catch(( err ) => {
 			console.error( err );
@@ -77,14 +77,14 @@ const login = ( req, res ) => {
 };
 
 const updateUser = ( req, res ) => {
-	const { _id, name, avatar } = req.user;
+	const { _id, name, avatar } = req.body;
 
-	User.findByIdAndUpdate( _id, { $set: { name, avatar }}, { runValidate: true } )
+	User.findByIdAndUpdate( _id, { $set: { name, avatar }}, { runValidators: true, new: true } )
 		.orFail()
 		.then(() => res.send({ message: 'User profile updated successfully' }))
 		.catch(( err ) => {
 			console.error( err );
-			if ( err.name === "CastError" || err.name === "ValidateError" ) {
+			if ( err.name === "CastError" || err.name === "ValidationError" ) {
 				return res.status( BAD_REQUEST.code ).send({ message: BAD_REQUEST.message });
 			}
 

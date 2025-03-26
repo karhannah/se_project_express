@@ -32,11 +32,11 @@ const getItems = ( req, res ) => {
 const deleteItem = ( req, res ) => {
 	const { itemId } = req.params;
 
-	Item.findOne( itemId )
+	Item.findOne({ _id: itemId })
 		.orFail()
 		.then(( item ) => {
 			if ( String( item.owner ) === req.user._id ) {
-				Item.deleteOne( itemId )
+				item.deleteOne()
 					.then(() => res.status( 200 ).send({ message: 'Item successfully deleted' }) )
 				    .catch(( err ) => {
 						console.error( err );
