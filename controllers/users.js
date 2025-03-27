@@ -77,7 +77,8 @@ const login = ( req, res ) => {
 };
 
 const updateUser = ( req, res ) => {
-	const { _id, name, avatar } = req.body;
+	const { _id } = req.user;
+	const { name, avatar } = req.body;
 
 	User.findByIdAndUpdate( _id, { $set: { name, avatar }}, { runValidators: true, new: true } )
 		.orFail()
