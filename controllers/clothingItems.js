@@ -22,7 +22,7 @@ const createItem = ( req, res ) => {
 
 const getItems = ( req, res ) => {
 	Item.find({})
-		.then(( items ) => res.send({ items }))
+		.then(( items ) => res.send( items ))
 		.catch(( err ) => {
 			console.error( err );
 			return res.status( DEFAULT.code ).send({ message: DEFAULT.message });
