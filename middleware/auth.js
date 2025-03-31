@@ -2,7 +2,7 @@ const jwt = require( 'jsonwebtoken' );
 const { UNAUTHORIZED } = require( '../utils/errors' );
 const { JWT_SECRET } = require( '../utils/config' );
 
-const handleAuthError = ( res ) => res.status( UNAUTHORIZED ).send({ message: UNAUTHORIZED.message });
+const handleAuthError = ( res ) => res.status( UNAUTHORIZED.code ).send({ message: UNAUTHORIZED.message });
 
 const auth = ( req, res, next ) => {
 	const { authorization } = req.headers;

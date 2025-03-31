@@ -5,11 +5,8 @@ const { BAD_REQUEST, FORBIDDEN, NOT_FOUND, DEFAULT } = require( '../utils/errors
 const createItem = ( req, res ) => {
 	const { name, weather, imageUrl } = req.body;
 
-	Item.create({ name, weather, imageUrl, owner: req.user._id })
-		.then(( item ) => {
-			console.log( item );
-			res.send({ data: item });
-		})
+	Item.create({ name, weather, imageUrl, owner: req.user._id, likes: [] })
+		.then(( item ) => res.send(item))
 		.catch(( err ) => {
 			console.error( err );
 			if ( err.name === "ValidationError" ) {
@@ -65,7 +62,7 @@ const likeItem = ( req, res ) => {
 
 	Item.findByIdAndUpdate( itemId, { $addToSet: { likes: req.user._id } }, { new: true } )
 		.orFail()
-		.then(() => res.send({ message: 'Item liked successfully' }))
+		.then(( item ) => res.send( item ))
 		.catch(( err ) => {
 			console.error( err );
 			if ( err.name === "CastError" || err.name === "ValidateError" ) {
@@ -85,7 +82,7 @@ const dislikeItem = ( req, res ) => {
 
 	Item.findByIdAndUpdate( itemId, { $pull: { likes: req.user._id } }, { new: true })
 		.orFail()
-		.then(() => res.send({ message: 'Item disliked successfully' }))
+		.then(( item ) => res.send( item ))
 		.catch(( err ) => {
 			console.error( err );
 			if ( err.name === "CastError" || err.name === "ValidateError" ) {
