@@ -82,7 +82,7 @@ const updateUser = ( req, res ) => {
 
 	User.findByIdAndUpdate( _id, { $set: { name, avatar }}, { runValidators: true, new: true } )
 		.orFail()
-		.then(() => res.send({ message: 'User profile updated successfully' }))
+		.then((user) => res.send(user))
 		.catch(( err ) => {
 			console.error( err );
 			if ( err.name === "CastError" || err.name === "ValidationError" ) {
