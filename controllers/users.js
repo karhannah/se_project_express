@@ -3,9 +3,13 @@ const jwt = require( 'jsonwebtoken' );
 
 const User = require( '../models/user' );
 const { JWT_SECRET } = require( '../utils/config' );
-const { BAD_REQUEST, UNAUTHORIZED, NOT_FOUND, CONFLICT, DEFAULT } = require( '../utils/errors' );
 
-const createUser = ( req, res ) => {
+const BadRequestError = require( '../utils/errors/bad-request' );
+const UnauthorizedError = require( '../utils/errors/unauthorized' );
+const NotFoundError = require( '../utils/errors/not-found' );
+const ConflictError = require( '../utils/errors/conflict' );
+
+const createUser = ( req, res, next ) => {
 	const { name, avatar, email, password } = req.body;
 
 	bcrypt.hash( password, 10 ).then((hash) => {
@@ -23,39 +27,39 @@ const createUser = ( req, res ) => {
 				});
 			})
 			.catch(( err ) => {
-				console.error( err );
 				if ( err.name === "ValidationError" ) {
-					return res.status( BAD_REQUEST.code ).send({ message: BAD_REQUEST.message });
+					next(new BadRequestError);
 				}
+				
 				if ( err.code === 11000 ) {
-					return res.status( CONFLICT.code ).send({ message: CONFLICT.message });
+					next(new ConflictError);
 				}
 			
-			return res.status( DEFAULT.code ).send({ message: DEFAULT.message }); 
+				next(err);
 		});
 	});
 };
 
-const getCurrentUser = ( req, res ) => {
+const getCurrentUser = ( req, res, next ) => {
 	const id = req.user._id;
 
 	User.findById( id )
 		.orFail()
 		.then(( user ) => res.send( user ))
 		.catch(( err ) => {
-			console.error( err );
 			if ( err.name === "CastError" ) {
-				return res.status( BAD_REQUEST.code ).send({ message: BAD_REQUEST.message });
-			}
-			if ( err.name === "DocumentNotFoundError" ) {
-				return res.status( NOT_FOUND.code ).send({ message: NOT_FOUND.message });
+				next(new BadRequestError);
 			}
 			
-			return res.status( DEFAULT.code ).send({ message: DEFAULT.message });
+			if ( err.name === "DocumentNotFoundError" ) {
+				next(new NotFoundError);
+			}
+			
+			next(err);
 		});
 };
 
-const login = ( req, res ) => {
+const login = ( req, res, next ) => {
 	const { email, password } = req.body;
 
 	User.findUserByCredentials( email, password )
@@ -67,16 +71,15 @@ const login = ( req, res ) => {
 			return res.send({ token });
 		})
 		.catch(( err ) => {
-			console.error( err );
 			if ( err.message === "Incorrect email or password" ) {
-				return res.status( UNAUTHORIZED.code ).send({ message: UNAUTHORIZED.message });
+				next(new UnauthorizedError);
 			}
 			
-			return res.status( DEFAULT.code ).send({ message: DEFAULT.message });
+			next(err);
 		});
 };
 
-const updateUser = ( req, res ) => {
+const updateUser = ( req, res, next ) => {
 	const { _id } = req.user;
 	const { name, avatar } = req.body;
 
@@ -84,16 +87,15 @@ const updateUser = ( req, res ) => {
 		.orFail()
 		.then((user) => res.send(user))
 		.catch(( err ) => {
-			console.error( err );
 			if ( err.name === "CastError" || err.name === "ValidationError" ) {
-				return res.status( BAD_REQUEST.code ).send({ message: BAD_REQUEST.message });
+				next(new BadRequestError);
 			}
 
 			if ( err.name === "DocumentNotFoundError" ) {
-				return res.status( NOT_FOUND.code ).send({ message: NOT_FOUND.message });
+				next(new NotFoundError);
 			}
 			
-			return res.status( DEFAULT.code ).send({ message: DEFAULT.message });
+			next(err);
 		});
 }
 

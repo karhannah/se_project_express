@@ -1,32 +1,30 @@
 const Item = require( '../models/clothingItem' );
 
-const { BAD_REQUEST, FORBIDDEN, NOT_FOUND, DEFAULT } = require( '../utils/errors' );
+const BadRequestError = require( '../utils/errors/bad-request' );
+const ForbiddenError = require( '../utils/errors/forbidden' );
+const NotFoundError = require( '../utils/errors/not-found' );
 
-const createItem = ( req, res ) => {
+const createItem = ( req, res, next ) => {
 	const { name, weather, imageUrl } = req.body;
 
 	Item.create({ name, weather, imageUrl, owner: req.user._id, likes: [] })
 		.then(( item ) => res.send(item))
 		.catch(( err ) => {
-			console.error( err );
 			if ( err.name === "ValidationError" ) {
-				return res.status( BAD_REQUEST.code ).send({ message: BAD_REQUEST.message });
+				next(new BadRequestError);
 			}
 			
-			return res.status( DEFAULT.code ).send({ message: DEFAULT.message });
+			next(err);
 		});
 };
 
-const getItems = ( req, res ) => {
+const getItems = ( req, res, next ) => {
 	Item.find({})
 		.then(( items ) => res.send( items ))
-		.catch(( err ) => {
-			console.error( err );
-			return res.status( DEFAULT.code ).send({ message: DEFAULT.message });
-		});
+		.catch(next);
 };
 
-const deleteItem = ( req, res ) => {
+const deleteItem = ( req, res, next ) => {
 	const { itemId } = req.params;
 
 	Item.findOne({ _id: itemId })
@@ -35,65 +33,59 @@ const deleteItem = ( req, res ) => {
 			if ( String( item.owner ) === req.user._id ) {
 				item.deleteOne()
 					.then(() => res.status( 200 ).send({ message: 'Item successfully deleted' }) )
-				    .catch(( err ) => {
-						console.error( err );
-						return res.status( DEFAULT.code ).send({ message: DEFAULT.message });
-					});
+				    .catch(next);
 			} else {
-				res.status( FORBIDDEN.code ).send({ message: FORBIDDEN.message });
+				next(new ForbiddenError);
 			}
 		})
 		.catch(( err ) => {
-			console.error( err );
 			if ( err.name === "CastError" || err.name === "ValidateError" ) {
-				return res.status( BAD_REQUEST.code ).send({ message: BAD_REQUEST.message });
+				next(new BadRequestError);
 			}
 			
 			if ( err.name === "DocumentNotFoundError" ) {
-				return res.status( NOT_FOUND.code ).send({ message: NOT_FOUND.message });
+				next(new NotFoundError);
 			}
 			
-			return res.status( DEFAULT.code ).send({ message: DEFAULT.message });
+			next(err);
 		});
 };
 
-const likeItem = ( req, res ) => {
+const likeItem = ( req, res, next ) => {
 	const { itemId } = req.params;
 
 	Item.findByIdAndUpdate( itemId, { $addToSet: { likes: req.user._id } }, { new: true } )
 		.orFail()
 		.then(( item ) => res.send( item ))
 		.catch(( err ) => {
-			console.error( err );
 			if ( err.name === "CastError" || err.name === "ValidateError" ) {
-				return res.status( BAD_REQUEST.code ).send({ message: BAD_REQUEST.message });
+				next(new BadRequestError);
 			}
 
 			if ( err.name === "DocumentNotFoundError" ) {
-				return res.status( NOT_FOUND.code ).send({ message: NOT_FOUND.message });
+				next(new NotFoundError);
 			}
 			
-			return res.status( DEFAULT.code ).send({ message: DEFAULT.message });
+			next(err);
 		});
 };
 
-const dislikeItem = ( req, res ) => {
+const dislikeItem = ( req, res, next ) => {
 	const { itemId } = req.params;
 
 	Item.findByIdAndUpdate( itemId, { $pull: { likes: req.user._id } }, { new: true })
 		.orFail()
 		.then(( item ) => res.send( item ))
 		.catch(( err ) => {
-			console.error( err );
 			if ( err.name === "CastError" || err.name === "ValidateError" ) {
-				return res.status( BAD_REQUEST.code ).send({ message: BAD_REQUEST.message });
+				next(new BadRequestError);
 			}
 
 			if ( err.name === "DocumentNotFoundError" ) {
-				return res.status( NOT_FOUND.code ).send({ message: NOT_FOUND.message });
+				next(new NotFoundError);
 			}
 			
-			return res.status( DEFAULT.code ).send({ message: DEFAULT.message });
+			next(err);
 		});
 };
 
