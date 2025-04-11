@@ -10,6 +10,7 @@ const validateUrl = ( value, helpers ) => {
 
 const validateItemBody = celebrate({
 	body: Joi.object().keys({
+		weather: Joi.string().valid('hot', 'warm', 'cold').required(),
 		name: Joi.string().required().min(2).max(30).messages({
 			'string.min': 'The minimum length of the "name" field is 2',
 			'string.max': 'The maximum length of the "name" field is 30',
@@ -56,20 +57,17 @@ const validateLogin = celebrate({
 });
 
 const validateId = celebrate({
-	body: Joi.object().keys({
-		_id: Joi.string().alphanum().length(24).messages({
-			'string.empty': 'The "_id" field must be filled in',
-			'string.alphanum': 'The "_id" field must be a valid id'
-		})
-	}),
 	params: Joi.object().keys({
 		itemId: Joi.string().alphanum().length(24).messages({
 			'string.empty': 'The "itemId" field must be filled in',
 			'string.alphanum': 'The "itemId" field must be a valid id'
-		}),
-		userId: Joi.string().alphanum().length(24).messages({
-			'string.empty': 'The "userId" field must be filled in',
-			'string.alphanum': 'The "userId" field must be a valid id'
 		})
 	})
 });
+
+module.exports = {
+	validateItemBody,
+	validateUserBody,
+	validateLogin,
+	validateId
+}
