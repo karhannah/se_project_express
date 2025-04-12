@@ -8,6 +8,8 @@ const itemRouter = require( './clothingItems' );
 const { createUser, login } = require( '../controllers/users' );
 const { validateLogin, validateUserBody } = require('../middleware/validation');
 
+const { auth } = require( '../middleware/auth' );
+
 router.use( '/users', userRouter );
 router.use( '/items', itemRouter );
 
