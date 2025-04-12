@@ -11,7 +11,7 @@ const { validateLogin, validateUserBody } = require('../middleware/validation');
 router.use( '/users', userRouter );
 router.use( '/items', itemRouter );
 
-router.post( '/signin', validateLogin, login );
+router.post( '/signin', login ); // Testing
 router.post( '/signup', validateUserBody, createUser );
 
 router.use(( req, res, next) => {
