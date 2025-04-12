@@ -6,13 +6,13 @@ const userRouter = require( './users' );
 const itemRouter = require( './clothingItems' );
 
 const { createUser, login } = require( '../controllers/users' );
-const { validateLogin } = require('../middleware/validation');
+const { validateLogin, validateUserBody } = require('../middleware/validation');
 
 router.use( '/users', userRouter );
 router.use( '/items', itemRouter );
 
-router.post( '/signin', login ).use( validateLogin );
-router.post( '/signup', createUser );
+router.post( '/signin', validateLogin, login );
+router.post( '/signup', validateUserBody, createUser );
 
 router.use(( req, res, next) => {
 	next(new NotFoundError);
