@@ -9,7 +9,7 @@ const { errors } = require( 'celebrate' );
 
 const mainRouter = require( './routes/index' );
 const errorHandler = require( './middleware/error-handler' );
-const { requestLogger, errorLogger } = require( './middleware/loggers.js' );
+const { requestLogger, errorLogger } = require( './middleware/loggers' );
 
 mongoose
 	.connect( 'mongodb://127.0.0.1:27017/wtwr_db' )
